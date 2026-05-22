@@ -26,6 +26,14 @@ Include `ZvtMacros.h`. Place one of the injection macros in the class body (no s
 
 Log format: `[FileName.cpp:Line][ObjectName] Message`
 
+In `WITH_EDITOR` builds, when **Project Settings > Plugins > Zvt Core > Show PIE Identifier In Logs** is enabled, the format becomes:
+
+`[NetMode PIEInstance][FileName.cpp:Line][ObjectName] Message`
+
+e.g. `[Client 2][MyActor.cpp:42][BP_MyActor_0] Foo called`
+
+`ZVT_LOG_FUNCTIONS_NOT_UOBJECT` follows the same rule but omits the object name segment. The PIE identifier is derived from `GWorld` at log time and is best-effort for non-UObject types.
+
 All macros expand to nothing in `NO_LOGGING` builds.
 
 **Example**
@@ -163,6 +171,16 @@ Jump   | Space | Pressed
 
 ---
 
+## Settings - `UZvtCoreSettings`
+
+Accessible at **Project Settings > Plugins > Zvt Core** (stored in `DefaultEditor.ini`).
+
+| Property                    | Default | Description                                         |
+|-----------------------------|---------|-----------------------------------------------------|
+| `bShowPIEIdentifierInLogs`  | `false` | Prepends `[NetMode PIEInstance]` to every log line in `WITH_EDITOR` builds |
+
+---
+
 ## File Path Utility - `FZvtUtils`
 
 Include `ZvtUtils.h`.
@@ -170,3 +188,4 @@ Include `ZvtUtils.h`.
 | Method                              | Description                                                    |
 |-------------------------------------|----------------------------------------------------------------|
 | `ExtractRelativeFilePath(AbsPath)`  | Converts an absolute path inside `Content/` to a content-relative path (starts with `/`) |
+| `GetPIEInstanceIdentifier()`        | Returns the current PIE instance string (e.g. `Client 2`). `WITH_EDITOR` only. Reads `GWorld`. |

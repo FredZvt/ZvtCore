@@ -19,6 +19,7 @@
 #if WITH_EDITOR
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Framework/Notifications/NotificationManager.h"
+#include "ZvtCoreSettings.h"
 #endif
 
 // ---------------------------------------------------------------------------
@@ -213,27 +214,33 @@
 #define ZVT_LOG_IF(CVar, Format, ...) if ((CVar).GetValueOnAnyThread()) { ZVT_LOG(Format, ##__VA_ARGS__) }
 
 #define ZVT_LOG_FUNCTIONS(CategoryName) \
-    template <typename... ArgTypes> \
-    void LogWarning(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) const \
+	template <typename... ArgTypes> \
+	void LogWarning(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) const \
 	{ \
 		const FString FormattedString = FString::Printf(Format, Args...); \
-		UE_LOG( \
-		CategoryName, Warning, TEXT("[%s:%i][%s] %s"), \
-		*FPaths::GetCleanFilename(File), Line, \
-		*GetName(), *FormattedString); \
+		FString Prefix; \
+		if (GetDefault<UZvtCoreSettings>()->bShowPIEIdentifierInLogs) \
+		{ \
+			Prefix += FString::Printf(TEXT("[%s]"), *FZvtUtils::GetPIEInstanceIdentifier()); \
+		} \
+		Prefix += FString::Printf(TEXT("[%s:%i]"), *FPaths::GetCleanFilename(File), Line); \
+		Prefix += FString::Printf(TEXT("[%s]"), *GetName()); \
+		UE_LOG(CategoryName, Warning, TEXT("%s %s"), *Prefix, *FormattedString); \
 	} \
 	\
 	template <typename... ArgTypes> \
-    void LogError(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) const \
+	void LogError(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) const \
 	{ \
 		const FString FormattedString = FString::Printf(Format, Args...); \
-		\
-		const FString FinalString = FString::Printf(TEXT("[%s:%i][%s] %s"), \
-		*FPaths::GetCleanFilename(File), \
-		Line, *GetName(), *FormattedString); \
-		\
+		FString Prefix; \
+		if (GetDefault<UZvtCoreSettings>()->bShowPIEIdentifierInLogs) \
+		{ \
+			Prefix += FString::Printf(TEXT("[%s]"), *FZvtUtils::GetPIEInstanceIdentifier()); \
+		} \
+		Prefix += FString::Printf(TEXT("[%s:%i]"), *FPaths::GetCleanFilename(File), Line); \
+		Prefix += FString::Printf(TEXT("[%s]"), *GetName()); \
+		const FString FinalString = FString::Printf(TEXT("%s %s"), *Prefix, *FormattedString); \
 		UE_LOG(CategoryName, Error, TEXT("%s"), *FinalString); \
-		\
 		FNotificationInfo Ni(FText::FromString(FinalString)); \
 		Ni.Image = FCoreStyle::Get().GetBrush("Icons.ErrorWithColor"); \
 		Ni.ExpireDuration = 5.f; \
@@ -245,10 +252,14 @@
 	void LogInfo(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) const \
 	{ \
 		const FString FormattedString = FString::Printf(Format, Args...); \
-		UE_LOG( \
-		CategoryName, Log, TEXT("[%s:%i][%s] %s"), \
-		*FPaths::GetCleanFilename(File), Line, \
-		*GetName(), *FormattedString); \
+		FString Prefix; \
+		if (GetDefault<UZvtCoreSettings>()->bShowPIEIdentifierInLogs) \
+		{ \
+			Prefix += FString::Printf(TEXT("[%s]"), *FZvtUtils::GetPIEInstanceIdentifier()); \
+		} \
+		Prefix += FString::Printf(TEXT("[%s:%i]"), *FPaths::GetCleanFilename(File), Line); \
+		Prefix += FString::Printf(TEXT("[%s]"), *GetName()); \
+		UE_LOG(CategoryName, Log, TEXT("%s %s"), *Prefix, *FormattedString); \
 	}
 
 #define ZVT_LOG_FUNCTIONS_NOT_UOBJECT(CategoryName) \
@@ -256,23 +267,27 @@
 	static void LogWarning(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) \
 	{ \
 		const FString FormattedString = FString::Printf(Format, Args...); \
-		UE_LOG( \
-		CategoryName, Warning, TEXT("[%s:%i] %s"), \
-		*FPaths::GetCleanFilename(File), Line, \
-		*FormattedString); \
+		FString Prefix; \
+		if (GetDefault<UZvtCoreSettings>()->bShowPIEIdentifierInLogs) \
+		{ \
+			Prefix += FString::Printf(TEXT("[%s]"), *FZvtUtils::GetPIEInstanceIdentifier()); \
+		} \
+		Prefix += FString::Printf(TEXT("[%s:%i]"), *FPaths::GetCleanFilename(File), Line); \
+		UE_LOG(CategoryName, Warning, TEXT("%s %s"), *Prefix, *FormattedString); \
 	} \
 	\
-    template <typename... ArgTypes> \
-    static void LogError(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) \
+	template <typename... ArgTypes> \
+	static void LogError(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) \
 	{ \
 		const FString FormattedString = FString::Printf(Format, Args...); \
-		\
-		const FString FinalString = FString::Printf(TEXT("[%s:%i] %s"), \
-		*FPaths::GetCleanFilename(File), \
-		Line, *FormattedString); \
-		\
+		FString Prefix; \
+		if (GetDefault<UZvtCoreSettings>()->bShowPIEIdentifierInLogs) \
+		{ \
+			Prefix += FString::Printf(TEXT("[%s]"), *FZvtUtils::GetPIEInstanceIdentifier()); \
+		} \
+		Prefix += FString::Printf(TEXT("[%s:%i]"), *FPaths::GetCleanFilename(File), Line); \
+		const FString FinalString = FString::Printf(TEXT("%s %s"), *Prefix, *FormattedString); \
 		UE_LOG(CategoryName, Error, TEXT("%s"), *FinalString); \
-		\
 		FNotificationInfo Ni(FText::FromString(FinalString)); \
 		Ni.Image = FCoreStyle::Get().GetBrush("Icons.ErrorWithColor"); \
 		Ni.ExpireDuration = 5.f; \
@@ -280,14 +295,17 @@
 		FSlateNotificationManager::Get().AddNotification(Ni); \
 	} \
 	\
-    template <typename... ArgTypes> \
-    static void LogInfo(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) \
+	template <typename... ArgTypes> \
+	static void LogInfo(UE::Core::TCheckedFormatString<FString::FmtCharType, ArgTypes...> Format, const FString& File, int Line, ArgTypes... Args) \
 	{ \
 		const FString FormattedString = FString::Printf(Format, Args...); \
-		UE_LOG( \
-		CategoryName, Log, TEXT("[%s:%i] %s"), \
-		*FPaths::GetCleanFilename(File), Line, \
-		*FormattedString); \
+		FString Prefix; \
+		if (GetDefault<UZvtCoreSettings>()->bShowPIEIdentifierInLogs) \
+		{ \
+			Prefix += FString::Printf(TEXT("[%s]"), *FZvtUtils::GetPIEInstanceIdentifier()); \
+		} \
+		Prefix += FString::Printf(TEXT("[%s:%i]"), *FPaths::GetCleanFilename(File), Line); \
+		UE_LOG(CategoryName, Log, TEXT("%s %s"), *Prefix, *FormattedString); \
 	}
 
 #else

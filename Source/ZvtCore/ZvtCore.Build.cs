@@ -11,14 +11,16 @@ public class ZvtCore : ModuleRules
 		{
 			Path.Combine(ModuleDirectory, "Public", "Logging"),
 			Path.Combine(ModuleDirectory, "Public", "Utilities"),
-			Path.Combine(ModuleDirectory, "Public", "Debug")
+			Path.Combine(ModuleDirectory, "Public", "Debug"),
+			Path.Combine(ModuleDirectory, "Public", "Settings")
 		});
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core",
 			"CoreUObject",
-			"Engine"
+			"Engine",
+			"DeveloperSettings"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

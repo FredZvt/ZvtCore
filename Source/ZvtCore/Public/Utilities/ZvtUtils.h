@@ -19,4 +19,21 @@ struct FZvtUtils
 		FString RelativeFilePath = AbsoluteFilePath.Mid(ProjectContentDir.Len() - 1);
 		return RelativeFilePath;
 	}
+
+#if WITH_EDITOR
+	static FString GetPIEInstanceIdentifier()
+	{
+		if (!GWorld) { return {}; }
+		const FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(GWorld);
+		if (!WorldContext) { return {}; }
+		switch (GWorld->GetNetMode())
+		{
+			case NM_Standalone:      return FString::Printf(TEXT("Standalone %d"), WorldContext->PIEInstance);
+			case NM_DedicatedServer: return FString::Printf(TEXT("DedicatedServer %d"), WorldContext->PIEInstance);
+			case NM_ListenServer:    return FString::Printf(TEXT("ListenServer %d"), WorldContext->PIEInstance);
+			case NM_Client:          return FString::Printf(TEXT("Client %d"), WorldContext->PIEInstance);
+			default:                 return {};
+		}
+	}
+#endif
 };

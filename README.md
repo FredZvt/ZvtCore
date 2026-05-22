@@ -1,6 +1,11 @@
 # ZvtCore
 
-Shared support plugin for Zvt projects. Provides logging macros, defensive return macros, a debug overlay subsystem, enum utilities, and a string table builder.
+A support plugin for Unreal Engine 5 projects. Provides:
+* Improved logging macros
+* Defensive return macros
+* A debug overlay subsystem
+* Enum utilities
+* A string table builder
 
 ---
 

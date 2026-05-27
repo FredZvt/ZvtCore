@@ -6,6 +6,7 @@ A support plugin for Unreal Engine 5 projects. Provides:
 * A debug overlay subsystem
 * Enum utilities
 * A string table builder
+* Asset Manager utilities
 
 ---
 
@@ -183,6 +184,44 @@ Accessible at **Project Settings > Plugins > Zvt Core** (stored in `DefaultEdito
 | Property                    | Default | Description                                         |
 |-----------------------------|---------|-----------------------------------------------------|
 | `bShowPIEIdentifierInLogs`  | `false` | Prepends `[NetMode PIEInstance]` to every log line in `WITH_EDITOR` builds |
+
+---
+
+## Asset Manager Utilities - `FZvtAssetManagerUtils`
+
+Include `ZvtAssetManagerUtils.h`.
+
+### `LoadPrimaryAssets<T>`
+
+Discovers all registered Primary Assets of a given type, loads them asynchronously, then
+calls a member function on the owner UObject with the typed results and any per-asset
+error messages.
+
+```cpp
+FZvtAssetManagerUtils::LoadPrimaryAssets<UCharacterMetaData>(
+    this, &UMyClass::OnCharactersLoaded);
+```
+
+The callback signature must be:
+
+```cpp
+void OnCharactersLoaded(TArray<UCharacterMetaData*> Assets, TArray<FString> Errors);
+```
+
+`Assets` contains every successfully loaded and cast asset. `Errors` contains a
+diagnostic string for each asset that failed to load or could not be cast.
+
+If no assets of the requested type are registered, the callback is invoked immediately
+(synchronously) with empty arrays.
+
+**Parameters**
+
+| Parameter          | Default        | Description                                                                              |
+|--------------------|----------------|------------------------------------------------------------------------------------------|
+| `Owner`            | -              | UObject that owns the callback. Callback is skipped if the owner is garbage-collected before loading finishes. |
+| `Callback`         | -              | Member function pointer called on completion.                                            |
+| `PrimaryAssetType` | `FPrimaryAssetType()` | Type name to query. Defaults to the class name of `T` (e.g. `CharacterMetaData` for `UCharacterMetaData`). Pass explicitly when the registered type name differs from the class name. |
+| `Bundles`          | empty          | Asset bundle names to load alongside the assets. Leave empty for the default asset state. |
 
 ---
 
